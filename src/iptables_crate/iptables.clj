@@ -53,10 +53,11 @@
    :else (throw (IllegalArgumentException. (format "Unknown type of parameter value: %s" (.toString value))))))
 
 (defn- default-arg-handler
-  [key value]
-  (if (= 1 (.length (name key)))
-    (str "-" (name key) " " (default-convert-value value))
-    (str "--" (name key) " " (default-convert-value value))))
+  [keyword value]
+  (let [key (name keyword)]
+    (if (= 1 (.length key))
+      (str "-" key " " (default-convert-value value))
+      (str "--" key " " (default-convert-value value)))))
 
 ;; TODO: special cases to add in
 ;;   :public-ports --> 1024:65535, both sport and dport
