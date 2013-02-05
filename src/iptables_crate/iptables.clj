@@ -67,6 +67,7 @@
    (= key :state) (state-arg-handler key value)
    (= key :source) (src-or-dst-arg-handler key value)
    (= key :destination) (src-or-dst-arg-handler key value)
+   (= key :log-prefix) (format "--log-prefix \"IPTC: %s\"" value)
    (= key :limit) (limit-arg-handler key value)
    :else (default-arg-handler key value)))
 
@@ -130,28 +131,39 @@
     (actions/remote-file "/etc/init.d/iptables-crate-firewall-rules"
                          :content rules-output
                          :literal true
-                         :mode 0755)
+                         :mode "0755")
     (actions/remote-file "/etc/init/iptables-crate.conf"
-                         :local-file (utils/resource-path "iptables/iptables-crate.conf"))
+                         :local-file (utils/resource-path "iptables/iptables-crate.conf")
+                         :literal true)
+    (actions/remote-file "/etc/rsyslog.d/01-iptables-crate.conf"
+                         :local-file (utils/resource-path "iptables/iptables-crate.rsyslog")
+                         :literal true
+                         :no-versioning true
+                         :mode "0644")
+    (actions/remote-file "/etc/logrotate.d/iptables-crate"
+                         :local-file (utils/resource-path "iptables/iptables-crate.logrotate")
+                         :literal true
+                         :no-versioning true
+                         :mode "0644")
     (actions/exec-checked-script
      "Update symlink to rules and restart firewall"
      (rm -f "/etc/init.d/iptables-crate")
      (ln -s "/etc/init.d/iptables-crate-firewall-rules" "/etc/init.d/iptables-crate")
-     ;; status to see if running
-     (if (= @(pipe (status iptables-crate)
+     (if-not (= @(pipe (status iptables-crate)
                    (grep running)) "")
-       (start iptables-crate)
-       (restart iptables-crate)))))
+       (stop iptables-crate))
+     (start iptables-crate)
+     (service rsyslog restart))))
 
 (defplan flush-iptables-rules
   "Turn off all iptables rules (temporarily or persistently)."
   []
   (let [hostname (crate/target-name)
-        persist (env/get-environment [:persist-rules-flush])]
+        persist (env/get-environment [:persist-rules-flush] false)]
     (actions/remote-file "/usr/bin/iptables-crate-flush-rules"
                          :local-file (utils/resource-path "iptables/iptables-crate-flush-rules")
                          :literal true
-                         :mode 0755)
+                         :mode "0755")
     (actions/exec-checked-script
      "Flush iptables rules"
      ("/usr/bin/iptables-crate-flush-rules"))
@@ -176,8 +188,8 @@
   "Make sure sysctl knobs are tuned as we wish."
   []
   (let [hostname (crate/target-name)
-        rules (env/get-environment [:host-config hostname :firewall-rules])
+        rules (env/get-environment [:host-config hostname :firewall-rules :sysctl-conf])
         turn-ons (:turn-on rules)
-        turn-offs (:turn-ff rules)]
+        turn-offs (:turn-off rules)]
     (set-sysctl-values turn-ons 1)
     (set-sysctl-values turn-offs 0)))

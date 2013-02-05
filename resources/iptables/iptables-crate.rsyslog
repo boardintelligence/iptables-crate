@@ -1,0 +1,5 @@
+# Put iptables-crate log messages in their own file
+:msg, startswith, "IPTC: " -/var/log/iptables-crate.log
+& ~
+:msg, regex, "^\[ *[0-9]*\.[0-9]*\] IPTC: " -/var/log/iptables-crate.log
+& ~
