@@ -54,7 +54,9 @@
 
 (defn- default-arg-handler
   [key value]
-  (str "--" (name key) " " (default-convert-value value)))
+  (if (= 1 (.length (name key)))
+    (str "-" (name key) " " (default-convert-value value))
+    (str "--" (name key) " " (default-convert-value value))))
 
 ;; TODO: special cases to add in
 ;;   :public-ports --> 1024:65535, both sport and dport
