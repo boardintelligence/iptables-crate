@@ -1,5 +1,10 @@
 (ns iptables-crate.iptables
-  "Crate with functions for setting up and configuring iptables firewalls")
+  "Crate with functions for setting up and configuring iptables firewalls"
+  (:require [pallet.actions :as actions]
+            [pallet.crate :as crate]
+            [pallet.environment :as env]
+            [pallet.utils :as utils]
+            [pallet.crate :refer [defplan]]))
 
 (def empty-ruleset
   {:mangle {:prerouting []
@@ -150,13 +155,13 @@
                          :mode "0644")
     (actions/exec-checked-script
      "Update symlink to rules and restart firewall"
-     (rm -f "/etc/init.d/iptables-crate")
-     (ln -s "/etc/init.d/iptables-crate-firewall-rules" "/etc/init.d/iptables-crate")
-     (if-not (= @(pipe (status iptables-crate)
-                   (grep running)) "")
-       (stop iptables-crate))
-     (start iptables-crate)
-     (service rsyslog restart))))
+     ("rm -f /etc/init.d/iptables-crate")
+     ("ln -s /etc/init.d/iptables-crate-firewall-rules" "/etc/init.d/iptables-crate")
+     (if-not (= @(pipe ("status iptables-crate")
+                   ("grep running")) "")
+       ("stop iptables-crate"))
+     ("start iptables-crate")
+     ("service rsyslog restart"))))
 
 (defplan flush-iptables-rules
   "Turn off all iptables rules (temporarily or persistently)."
@@ -173,7 +178,7 @@
     (if persist
       (actions/exec-checked-script
        "Remove symlink to rules to disable them"
-       (rm -f "/etc/init.d/iptables-crate")))))
+       ("rm -f /etc/init.d/iptables-crate")))))
 
 (defn- set-sysctl-values
   [variables value]
@@ -183,9 +188,9 @@
       (actions/sed "/etc/sysctl.conf" {(format "%s\\s*=.*" variable) set-expression})
       (actions/exec-checked-script
        "Add to sysctl if setting not present, enact in current session"
-       (if (= @(grep ~start-of-line "/etc/sysctl.conf") "")
-         (echo ~set-expression " >> /etc/sysctl.conf"))
-       (sysctl -w ~set-expression)))))
+       (if (= @("grep" ~start-of-line "/etc/sysctl.conf") "")
+         ("echo" ~set-expression " >> /etc/sysctl.conf"))
+       ("sysctl" -w ~set-expression)))))
 
 (defplan install-sysctl-config
   "Make sure sysctl knobs are tuned as we wish."

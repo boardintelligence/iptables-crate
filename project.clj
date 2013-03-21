@@ -5,18 +5,14 @@
             :url "http://boardintelligence.mit-license.org"}
 
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [org.cloudhoist/pallet "0.8.0-alpha.8"]
+                 [com.palletops/pallet "0.8.0-beta.5"]
                  [ch.qos.logback/logback-classic "1.0.7"]]
 
-  :dev-dependencies [[org.cloudhoist/pallet "0.8.0-alpha.8" :type "test-jar"]
-                     [org.cloudhoist/pallet-lein "0.5.2"]]
+  :dev-dependencies [[com.palletops/pallet "0.8.0-beta.5" :type "test-jar"]
+                     [com.palletops/pallet-lein "0.6.0-beta.7"]]
 
   :profiles {:dev
-             {:dependencies [[org.cloudhoist/pallet "0.8.0-alpha.8" :classifier "tests"]]
-              :plugins [[org.cloudhoist/pallet-lein "0.5.2"]]}}
+             {:dependencies [[com.palletops/pallet "0.8.0-beta.5" :classifier "tests"]]
+              :plugins [[com.palletops/pallet-lein "0.6.0-beta.7"]]}}
 
-  :local-repo-classpath true
-
-  :repositories
-  {"sonatype-snapshots" "https://oss.sonatype.org/content/repositories/snapshots"
-   "sonatype" "https://oss.sonatype.org/content/repositories/releases/"})
+  :local-repo-classpath true)
