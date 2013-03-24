@@ -1,5 +1,6 @@
 (ns iptables-crate.iptables
   "Crate with functions for setting up and configuring iptables firewalls"
+  (:refer-clojure :exclude (drop))
   (:require [pallet.actions :as actions]
             [pallet.crate :as crate]
             [pallet.environment :as env]
